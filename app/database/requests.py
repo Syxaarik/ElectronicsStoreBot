@@ -1,4 +1,4 @@
-from app.database.models import async_session, User
+from app.database.models import async_session, User, Item
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -23,3 +23,9 @@ async def add_user(tg_id: int, tg_name: str | None = None):
         except SQLAlchemyError as e:
             await session.rollback()
             print(f"Ошибка при добавлении пользователя: {e}")
+
+
+async def get_item():
+    async with async_session() as session:
+        item = await session.get(Item)
+        return item
