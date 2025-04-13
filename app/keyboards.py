@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from app.database.requests import get_item
+from app.database.requests import get_all_items
 
 main = InlineKeyboardMarkup(
     inline_keyboard=[
@@ -11,10 +11,10 @@ main = InlineKeyboardMarkup(
 )
 
 
-async def set_item():
-    all_item = await get_item()
+async def keyboard_item():
+    all_item = await get_all_items()
     keyboard = InlineKeyboardBuilder()
 
-    for items in all_item:
-        keyboard.row(InlineKeyboardButton(text=items.name, callback_data='_item'))
-    keyboard.row(InlineKeyboardButton(text='<-Назад', callback_data='catalog'))
+    for item in all_item:
+        keyboard.row(InlineKeyboardButton(text=item.name, callback_data=f'item_{item.id}'))
+    return keyboard.as_markup()
