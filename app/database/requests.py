@@ -25,8 +25,14 @@ async def add_user(tg_id: int, tg_name: str | None = None):
             print(f"Ошибка при добавлении пользователя: {e}")
 
 
-async def get_all_items():
+async def get_items_by_category():
     async with async_session() as session:
         stmt = select(Item)
         result = await session.execute(stmt)
         return result.scalars().all()
+
+
+async def get_items(item_id):
+    async with async_session() as session:
+        items = await session.get(Item, item_id)
+        return items
