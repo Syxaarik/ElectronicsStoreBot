@@ -20,8 +20,8 @@ async def keyboard_item():
     return keyboard.as_markup()
 
 
-back_in_catalog = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [InlineKeyboardButton(text='К каталогу⬅', callback_data='catalog')]
-    ]
-)
+async def pay_or_back(item_id: int):
+    keyboard = InlineKeyboardBuilder()
+    keyboard.row(InlineKeyboardButton(text='💲Оплатить💲', callback_data=f'item_{item_id}'))
+    keyboard.row(InlineKeyboardButton(text='К каталогу⬅', callback_data='catalog'))
+    return keyboard.as_markup()
