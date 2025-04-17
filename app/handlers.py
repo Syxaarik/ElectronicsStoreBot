@@ -38,10 +38,10 @@ async def show_item(callback: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith('pay_'))
-async def command_pay(message: types.Message, bot: Bot, callback: CallbackQuery):
+async def command_pay(message: types.Message, callback: CallbackQuery):
     item = await get_items(int(callback.data.split('_')[1]))
     PRICE = types.LabeledPrice(label=item.name, amount=int(item.price * 100))
-    await bot.send_invoice(
+    await message.bot.send_invoice(
         chat_id=message.chat.id,
         title=item.name,
         description=item.description,
@@ -49,15 +49,15 @@ async def command_pay(message: types.Message, bot: Bot, callback: CallbackQuery)
         provider_token=os.getenv('PAY_TOKEN'),
         currency="RUB",
         prices=[PRICE],
-        start_parameter="create_invoice_test",
+        start_parameter="test-invoice",
+        is_flexible=False,\
     )
 
 
-@router.pre_checkout_query(lambda query: True)
-async def pre_checkout_query(pre_checkout_q: types.PreCheckoutQuery, bot: Bot):
-    await bot.answer_pre_checkout_query(pre_checkout_q.id, ok=True)
+@router.pre_checkout_query()
+async def process_pre_checkout_query(pre_checkout_q: PreCheckoutQuery):
+    await pre_checkout_q.bot.answer_pre_checkout_query(pre_checkout_q.id, ok=True)
 
-
-@router.message(lambda message: message.successful_payment is not None)
-async def successful_payment(message: Message):
-    await message.answer("Платеж успешно завершен! Спасибо за покупку!")
+@router.message(F.successful_payment)
+async def got_payment(message: Message):
+    await message.answer("Спасибо за оплату! 🎉 Доступ предоставлен.")
