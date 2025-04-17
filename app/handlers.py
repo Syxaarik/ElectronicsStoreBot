@@ -1,6 +1,6 @@
-from aiogram import Router, F, Bot, types
+from aiogram import Router, F, types
+from aiogram.types import Message, CallbackQuery
 from aiogram.filters import CommandStart
-from aiogram.types import Message, CallbackQuery, ContentType, PreCheckoutQuery, SuccessfulPayment
 from dotenv import load_dotenv
 
 from app.database.requests import add_user, get_items
@@ -38,26 +38,17 @@ async def show_item(callback: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith('pay_'))
-async def command_pay(message: types.Message, callback: CallbackQuery):
+async def command_pay(callback: CallbackQuery, bot):
     item = await get_items(int(callback.data.split('_')[1]))
-    PRICE = types.LabeledPrice(label=item.name, amount=int(item.price * 100))
-    await message.bot.send_invoice(
-        chat_id=message.chat.id,
-        title=item.name,
-        description=item.description,
-        payload='test-invoice-payload',
+    PRICE = [types.LabeledPrice(label=item.name, amount=int(item.price * 100))] 
+    await bot.send_invoice(
+        chat_id=callback.from_user.id,
+        title="Тестовый товар",
+        description="Описание",
+        payload="payload-test",
         provider_token=os.getenv('PAY_TOKEN'),
         currency="RUB",
-        prices=[PRICE],
-        start_parameter="test-invoice",
-        is_flexible=False,\
+        prices=PRICE,
+        start_parameter="start-param",
     )
-
-
-@router.pre_checkout_query()
-async def process_pre_checkout_query(pre_checkout_q: PreCheckoutQuery):
-    await pre_checkout_q.bot.answer_pre_checkout_query(pre_checkout_q.id, ok=True)
-
-@router.message(F.successful_payment)
-async def got_payment(message: Message):
-    await message.answer("Спасибо за оплату! 🎉 Доступ предоставлен.")
+    await callback.answer()
