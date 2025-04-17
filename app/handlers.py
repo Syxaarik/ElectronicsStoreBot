@@ -1,12 +1,14 @@
-from aiogram import Router, F, Bot
+from aiogram import Router, F, Bot, types
 from aiogram.filters import CommandStart
-from aiogram.types import Message, CallbackQuery, LabeledPrice, PreCheckoutQuery, SuccessfulPayment
+from aiogram.types import Message, CallbackQuery, ContentType, PreCheckoutQuery, SuccessfulPayment
+from dotenv import load_dotenv
 
 from app.database.requests import add_user, get_items
 import app.keyboards as kb
 import os
 
 router = Router()
+load_dotenv()
 
 
 @router.message(CommandStart())
@@ -36,43 +38,23 @@ async def show_item(callback: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith('pay_'))
-async def command_pay(message: Message, bot: Bot, callback: CallbackQuery):
+async def command_pay(message: types.Message, bot: Bot, callback: CallbackQuery):
     item = await get_items(int(callback.data.split('_')[1]))
-    try:
-        await bot.send_invoice(
-            chat_id=message.chat.id,
-            title=item.name,
-            description=item.description,
-            payload=str(item.id),  # Уникальный идентификатор платежа
-            provider_token='1744374395:TEST:0b2dbdcab951620502a6',  # Токен от BotFather
-            currency="RUB",  # Валюта (RUB, USD, EUR и т.д.)
-            prices=[LabeledPrice(label=item.name, amount=int(item.price * 100))],
-            start_parameter="create_invoice_test",
-            provider_data=None,
-            photo_url=None,
-            photo_size=None,
-            photo_width=None,
-            photo_height=None,
-            need_name=True,
-            need_phone_number=True,
-            need_email=True,
-            need_shipping_address=False,
-            send_phone_number_to_provider=False,
-            send_email_to_provider=False,
-            is_flexible=False,
-            disable_notification=False,
-            protect_content=False,
-            reply_to_message_id=None,
-            allow_sending_without_reply=True,
-            reply_markup=None,
-            request_timeout=15
-        )
-    except Exception as e:
-        print(f"Ошибка: {e}")
+    PRICE = types.LabeledPrice(label=item.name, amount=int(item.price * 100))
+    await bot.send_invoice(
+        chat_id=message.chat.id,
+        title=item.name,
+        description=item.description,
+        payload='test-invoice-payload',
+        provider_token=os.getenv('PAY_TOKEN'),
+        currency="RUB",
+        prices=[PRICE],
+        start_parameter="create_invoice_test",
+    )
 
 
-@router.pre_checkout_query()
-async def pre_checkout_query(pre_checkout_q: PreCheckoutQuery, bot: Bot):
+@router.pre_checkout_query(lambda query: True)
+async def pre_checkout_query(pre_checkout_q: types.PreCheckoutQuery, bot: Bot):
     await bot.answer_pre_checkout_query(pre_checkout_q.id, ok=True)
 
 
