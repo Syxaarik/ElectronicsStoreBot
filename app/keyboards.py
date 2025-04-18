@@ -6,7 +6,8 @@ from app.database.requests import get_items_by_category
 main = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(text='Каталог🛒', callback_data='catalog')],
-        [InlineKeyboardButton(text='Контакты☎', callback_data='contact')]
+        [InlineKeyboardButton(text='Контакты☎', callback_data='contact')],
+        [InlineKeyboardButton(text='Админ-панель♿', callback_data='admin_panel')]
     ]
 )
 

@@ -40,7 +40,7 @@ async def show_item(callback: CallbackQuery):
 @router.callback_query(F.data.startswith('pay_'))
 async def command_pay(callback: CallbackQuery, bot):
     item = await get_items(int(callback.data.split('_')[1]))
-    PRICE = [types.LabeledPrice(label=item.name, amount=int(item.price * 100))] 
+    PRICE = [types.LabeledPrice(label=item.name, amount=int(item.price * 100))]
     await bot.send_invoice(
         chat_id=callback.from_user.id,
         title="Тестовый товар",
@@ -52,3 +52,8 @@ async def command_pay(callback: CallbackQuery, bot):
         start_parameter="start-param",
     )
     await callback.answer()
+
+
+@router.callback_query(F.data == 'admin_panel')
+async def admin(message: Message):
+    await message.answer('Вы находитесь в админ панели')
