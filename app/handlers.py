@@ -1,4 +1,6 @@
 from aiogram import Router, F, types
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import CommandStart
 from dotenv import load_dotenv
@@ -11,12 +13,13 @@ router = Router()
 load_dotenv()
 
 
+class Form(StatesGroup):
+    admin_key = State()
+
+
 @router.message(CommandStart())
 async def start(message: Message):
-    tg_id = message.from_user.id
-    tg_name = message.from_user.full_name
-
-    await add_user(tg_id=tg_id, tg_name=tg_name)
+    await add_user(tg_id=message.from_user.id, tg_name=message.from_user.full_name)
     await message.answer(f'Привет мой друг {message.from_user.full_name}', reply_markup=kb.main)
 
 
@@ -54,6 +57,24 @@ async def command_pay(callback: CallbackQuery, bot):
     await callback.answer()
 
 
-@router.callback_query(F.data == 'admin_panel')
-async def admin(message: Message):
-    await message.answer('Вы находитесь в админ панели')
+# Сделать обработку на ключ админа, что бы его можно было вписать и FSM
+@router.callback_query(F.data == 'admin_reg')
+async def admin_set(message: Message, state: FSMContext):
+    await state.set_state(Form.admin_key)
+    await message.answer('Введите ключ для входа в админ панель:')
+
+
+@router.message(Form.admin_key)
+async def admin(message: Message, state: FSMContext):
+    await state.update_data(key=message.text)
+    data = await state.get_data()
+    key = '1234'
+
+    # Добавление проверки на ID для admin и создание кнопак редактирования
+    if data['key'] == key:
+        await message.answer('Вы попали в админ панель.')
+       # await add_admin(tg_id=message.from_user.id)
+        await state.clear()
+    else:
+        await message.answer(f'Не верный ключ. \nПравильный ключ был: {data['key']}')
+        await state.clear()
