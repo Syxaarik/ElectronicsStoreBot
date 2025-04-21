@@ -20,6 +20,7 @@ class User(Base):
     id: Mapped['int'] = mapped_column(primary_key=True, autoincrement=True)
     tg_id: Mapped['int'] = mapped_column(BigInteger)
     tg_name: Mapped['str'] = mapped_column(String, nullable=True)
+    admin_id: Mapped['int'] = mapped_column(BigInteger, nullable=False, default=0)
 
 
 class Item(Base):

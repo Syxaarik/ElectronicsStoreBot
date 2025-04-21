@@ -4,10 +4,13 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import CommandStart
 from dotenv import load_dotenv
+from sqlalchemy.util import await_only
 
-from app.database.requests import add_user, get_items
+from app.database.requests import add_user, get_items, add_admin_id, is_admin
 import app.keyboards as kb
 import os
+
+from app.keyboards import admin_keyb
 
 router = Router()
 load_dotenv()
@@ -57,24 +60,27 @@ async def command_pay(callback: CallbackQuery, bot):
     await callback.answer()
 
 
-# Сделать обработку на ключ админа, что бы его можно было вписать и FSM
 @router.callback_query(F.data == 'admin_reg')
-async def admin_set(message: Message, state: FSMContext):
+async def admin_set(callback: CallbackQuery, state: FSMContext):
+    if await is_admin(callback.from_user.id):
+        await callback.message.answer("✅ Вы уже админ. Добро пожаловать в панель!", reply_markup=admin_keyb)
+        return
+
     await state.set_state(Form.admin_key)
-    await message.answer('Введите ключ для входа в админ панель:')
+    await callback.message.answer('Введите ключ для входа в админ панель:')
+    await callback.answer()
 
 
 @router.message(Form.admin_key)
 async def admin(message: Message, state: FSMContext):
     await state.update_data(key=message.text)
     data = await state.get_data()
-    key = '1234'
 
-    # Добавление проверки на ID для admin и создание кнопак редактирования
-    if data['key'] == key:
-        await message.answer('Вы попали в админ панель.')
-       # await add_admin(tg_id=message.from_user.id)
+    # Добавление проверки на ID для admin и создание кнопок редактирования
+    if data['key'] == '1999':
         await state.clear()
+        await add_admin_id(message.from_user.id, message.from_user.full_name)
+        await message.answer(f'Вы попали в админ панель.', reply_markup=kb.admin_keyb)
     else:
-        await message.answer(f'Не верный ключ. \nПравильный ключ был: {data['key']}')
+        await message.answer(f'Не верный ключ.')
         await state.clear()

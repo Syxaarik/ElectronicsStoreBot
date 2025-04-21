@@ -36,3 +36,26 @@ async def get_items(item_id):
     async with async_session() as session:
         items = await session.get(Item, item_id)
         return items
+
+
+async def add_admin_id(tg_id: int, tg_name: str) -> None:
+    async with async_session() as session:
+        result = await session.execute(select(User).where(User.tg_id == tg_id))
+        users = result.scalars().all()
+
+        if users:
+            user = users[0]
+            user.admin_id = tg_id
+        else:
+            user = User(tg_id=tg_id, tg_name=tg_name, admin_id=tg_id)
+            session.add(user)
+
+        await session.commit()
+
+
+async def is_admin(tg_id: int) -> bool:
+    async with async_session() as session:
+        result = await session.execute(
+            select(User).where(User.admin_id == tg_id)
+        )
+        return result.scalar_one_or_none() is not None
