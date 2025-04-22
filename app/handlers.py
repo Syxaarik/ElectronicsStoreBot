@@ -18,6 +18,7 @@ load_dotenv()
 
 class Form(StatesGroup):
     admin_key = State()
+    create_item_name = State()
 
 
 @router.message(CommandStart())
@@ -84,3 +85,16 @@ async def admin(message: Message, state: FSMContext):
     else:
         await message.answer(f'Не верный ключ.')
         await state.clear()
+
+
+@router.callback_query(F.data == 'create_item')
+async def create_item(callback: CallbackQuery, state: FSMContext):
+    await state.set_state(Form.create_item_name)
+    await callback.message.answer('Напиши название товара:')
+    await callback.answer()
+
+
+@router.message(Form.create_item_name)
+async def admin_item(message: Message, state: FSMContext):
+    await state.update_data(item=message.text)
+    item = await state.get_data()
