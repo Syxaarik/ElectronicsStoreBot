@@ -18,7 +18,7 @@ class Base(AsyncAttrs, DeclarativeBase):
 class User(Base):
     __tablename__ = 'users'
     id: Mapped['int'] = mapped_column(primary_key=True, autoincrement=True)
-    tg_id: Mapped['int'] = mapped_column(BigInteger)
+    tg_id: Mapped['int'] = mapped_column(BigInteger, unique=True)
     tg_name: Mapped['str'] = mapped_column(String, nullable=True)
     admin_id: Mapped['int'] = mapped_column(BigInteger, nullable=False, default=0)
 

@@ -1,5 +1,6 @@
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.models import async_session, User, Item
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.exc import SQLAlchemyError
 
 
@@ -59,3 +60,10 @@ async def is_admin(tg_id: int) -> bool:
             select(User).where(User.admin_id == tg_id)
         )
         return result.scalar_one_or_none() is not None
+
+
+async def delete_item(session: AsyncSession, d_item: str):
+    stmt = delete(User).where(User.id == d_item)
+    result = await session.execute(stmt)
+    await session.commit()
+    return result.rowcount > 0

@@ -4,7 +4,6 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import CommandStart
 from dotenv import load_dotenv
-from sqlalchemy.util import await_only
 
 from app.database.requests import add_user, get_items, add_admin_id, is_admin
 import app.keyboards as kb
@@ -50,8 +49,8 @@ async def command_pay(callback: CallbackQuery, bot):
     PRICE = [types.LabeledPrice(label=item.name, amount=int(item.price * 100))]
     await bot.send_invoice(
         chat_id=callback.from_user.id,
-        title="Тестовый товар",
-        description="Описание",
+        title=item.name,
+        description=item.description,
         payload="payload-test",
         provider_token=os.getenv('PAY_TOKEN'),
         currency="RUB",
