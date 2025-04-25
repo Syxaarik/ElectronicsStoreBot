@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from app.database.requests import get_items_by_category
+from app.database.requests import get_items_by_category, delete_item
 
 main = InlineKeyboardMarkup(
     inline_keyboard=[
@@ -30,8 +30,17 @@ async def pay_or_back(item_id: int):
 
 admin_keyb = InlineKeyboardMarkup(
     inline_keyboard=[
-        [InlineKeyboardButton(text='Создание товара🛠', callback_data="create_item"),
+        [InlineKeyboardButton(text='Создание товара🛠', callback_data='create_item'),
          InlineKeyboardButton(text='Удаление товара🗑', callback_data='delete_item')],
         [InlineKeyboardButton(text='К каталогу⬅', callback_data='catalog')]
     ]
 )
+
+
+async def delete_item_keyb():
+    all_items = await get_items_by_category()
+    keyboard = InlineKeyboardBuilder()
+
+    for item in all_items:
+        keyboard.row(InlineKeyboardButton(text=item.name, callback_data=f'delete_item_{item.id}'))
+    return keyboard.as_markup()

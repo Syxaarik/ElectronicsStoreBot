@@ -62,8 +62,8 @@ async def is_admin(tg_id: int) -> bool:
         return result.scalar_one_or_none() is not None
 
 
-async def delete_item(session: AsyncSession, d_item: str):
-    stmt = delete(User).where(User.id == d_item)
+async def delete_item(session: AsyncSession, item_id: str):
+    stmt = delete(User).where(User.id == item_id)
     result = await session.execute(stmt)
     await session.commit()
     return result.rowcount > 0
