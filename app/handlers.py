@@ -5,7 +5,7 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.filters import CommandStart
 from dotenv import load_dotenv
 
-from app.database.requests import add_user, get_items, add_admin_id, is_admin
+from app.database.requests import add_user, get_items, add_admin_id, is_admin, delete_item
 import app.keyboards as kb
 import os
 
@@ -87,5 +87,12 @@ async def admin(message: Message, state: FSMContext):
 
 
 @router.callback_query(F.data == 'delete_item')
-async def create_item(callback: CallbackQuery):
+async def get_item_delete(callback: CallbackQuery):
     await callback.message.edit_text('Выбери предмет для удаления:', reply_markup=await kb.delete_item_keyb())
+
+
+@router.callback_query(F.data.startswith('delete_'))
+async def delete_p(callback: CallbackQuery, session):
+    item_id = int(callback.data.split('_')[1])
+    await delete_item(session, item_id)
+    await callback.message.edit_text('Товар успешно удален', reply_markup=kb.main)

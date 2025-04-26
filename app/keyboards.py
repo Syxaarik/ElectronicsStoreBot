@@ -42,5 +42,5 @@ async def delete_item_keyb():
     keyboard = InlineKeyboardBuilder()
 
     for item in all_items:
-        keyboard.row(InlineKeyboardButton(text=item.name, callback_data=f'delete_item_{item.id}'))
+        keyboard.row(InlineKeyboardButton(text=item.name, callback_data=f'delete_{item.id}'))
     return keyboard.as_markup()
