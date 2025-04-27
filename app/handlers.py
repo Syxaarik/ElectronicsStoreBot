@@ -17,7 +17,9 @@ load_dotenv()
 
 class Form(StatesGroup):
     admin_key = State()
-    create_item_name = State()
+    item_name = State()
+    item_description = State()
+    item_price = State()
 
 
 @router.message(CommandStart())
@@ -92,7 +94,21 @@ async def get_item_delete(callback: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith('delete_'))
-async def delete_p(callback: CallbackQuery, session):
+async def delete_item(callback: CallbackQuery, session):
     item_id = int(callback.data.split('_')[1])
     await delete_item(session, item_id)
-    await callback.message.edit_text('Товар успешно удален', reply_markup=kb.main)
+    await callback.message.edit_text('Товар удален\n Выберите кнопку из меню', reply_markup=kb.main)
+
+
+@router.callback_query(F.date == 'create_item')
+async def get_item_create(callback: CallbackQuery, state: FSMContext):
+    await state.set_state(Form.item_name)
+    await callback.message.answer('Введите название предмета:')
+    await callback.answer()
+
+
+@router.message(Form.item_name)
+async def get_item(message: Message, state: FSMContext):
+    await state.update_data(name_item=message.text)
+    data = await state.get_data()
+    await state.clear()
