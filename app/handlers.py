@@ -9,8 +9,6 @@ from app.database.requests import add_user, get_items, add_admin_id, is_admin, d
 import app.keyboards as kb
 import os
 
-from app.keyboards import admin_keyb
-
 router = Router()
 load_dotenv()
 
@@ -65,7 +63,7 @@ async def command_pay(callback: CallbackQuery, bot):
 @router.callback_query(F.data == 'admin_reg')
 async def admin_set(callback: CallbackQuery, state: FSMContext):
     if await is_admin(callback.from_user.id):
-        await callback.message.answer("✅ Вы уже админ. Добро пожаловать в панель!", reply_markup=admin_keyb)
+        await callback.message.answer("✅ Вы уже админ. Добро пожаловать в панель!", reply_markup=kb.admin_keyb)
         return
 
     await state.set_state(Form.admin_key)
@@ -88,6 +86,40 @@ async def admin(message: Message, state: FSMContext):
         await state.clear()
 
 
+@router.callback_query(F.data == 'create_item')
+async def get_item_create(callback: CallbackQuery, state: FSMContext):
+    await state.set_state(Form.item_name)
+    await callback.message.answer('Введите название предмета:')
+    await callback.answer()
+
+
+@router.message(Form.item_name)
+async def get_item_name(message: Message, state: FSMContext):
+    await state.update_data(name=message.text)
+    await state.set_state(Form.item_description)
+    await message.answer('Введите описание предмета:')
+
+
+@router.message(Form.item_description)
+async def get_item_description(message: Message, state: FSMContext):
+    await state.update_data(description=message.text)
+    await state.set_state(Form.item_price)
+    await message.answer('Введите цену предмета:')
+
+
+@router.message(Form.item_price)
+async def add_item(message: Message, state: FSMContext):
+    try:
+        await state.update_data(price=message.text)
+        data = await state.get_data()
+        await message.answer(f"Товар создан!\nНазвание: {data['name']}"
+                             f"\nОписание: {data['description']}"
+                             f"\nЦена: {data['price']}₽")
+        await state.clear()
+    except ValueError:
+        await message.answer('Пожалуйста, введите корректную цену (только число)')
+
+
 @router.callback_query(F.data == 'delete_item')
 async def get_item_delete(callback: CallbackQuery):
     await callback.message.edit_text('Выбери предмет для удаления:', reply_markup=await kb.delete_item_keyb())
@@ -98,17 +130,3 @@ async def delete_item(callback: CallbackQuery, session):
     item_id = int(callback.data.split('_')[1])
     await delete_item(session, item_id)
     await callback.message.edit_text('Товар удален\n Выберите кнопку из меню', reply_markup=kb.main)
-
-
-@router.callback_query(F.date == 'create_item')
-async def get_item_create(callback: CallbackQuery, state: FSMContext):
-    await state.set_state(Form.item_name)
-    await callback.message.answer('Введите название предмета:')
-    await callback.answer()
-
-
-@router.message(Form.item_name)
-async def get_item(message: Message, state: FSMContext):
-    await state.update_data(name_item=message.text)
-    data = await state.get_data()
-    await state.clear()

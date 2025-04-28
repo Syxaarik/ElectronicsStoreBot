@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 
 from app.handlers import router
 from app.database.models import init_db
+from app.middleware import DBSessionMiddleware
 
 
 async def main():
@@ -18,6 +19,7 @@ async def main():
     await init_db()
     dp = Dispatcher(router=router, storage=MemoryStorage())
     dp.include_router(router)
+    dp.update.middleware(DBSessionMiddleware())
     bot = Bot(token=os.getenv('TOKEN'), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     await dp.start_polling(bot, skip_updates=False)
 
