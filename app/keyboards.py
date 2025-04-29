@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from app.database.requests import get_items_by_category, delete_item
+from app.database.requests import get_items_by_category
 
 main = InlineKeyboardMarkup(
     inline_keyboard=[

@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.models import async_session, User, Item
 from sqlalchemy import select, delete
 from sqlalchemy.exc import SQLAlchemyError
+from typing import Tuple
 
 
 async def get_user_id(tg_id: int):
@@ -66,3 +67,24 @@ async def delete_item(session: AsyncSession, item_id: int):
     print(f'удаление товара по id:{item_id}')
     await session.execute(delete(Item).where(Item.id == item_id))
     await session.commit()
+
+
+class DBRequests:
+    @staticmethod
+    async def create_requests(session: AsyncSession, item_data: Tuple[str, str, int]):
+        try:
+            item_requests = Item(
+                name=item_data[0],
+                description=item_data[1],
+                price=item_data[2]
+            )
+
+            session.add_all([item_requests])
+            await session.commit()
+            await session.refresh(item_requests)
+            return item_requests
+
+        except Exception as e:
+            await session.rollback()
+            print(f"Error creating requests: {e}")
+            return None

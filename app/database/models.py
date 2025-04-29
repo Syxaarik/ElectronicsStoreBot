@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
 
 load_dotenv()
 
-engine = create_async_engine(url=os.getenv('DB'))
+engine = create_async_engine(url=os.getenv('DB'), echo=True)
 async_session = async_sessionmaker(engine, class_=AsyncSession)
 
 
@@ -35,3 +35,8 @@ class Item(Base):
 async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+
+async def get_db_session():
+    async with async_session() as session:
+        yield session

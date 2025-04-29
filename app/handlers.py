@@ -3,9 +3,11 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import CommandStart
+from typing import AsyncIterator
 from dotenv import load_dotenv
 
-from app.database.requests import add_user, get_items, add_admin_id, is_admin, delete_item
+from app.database.requests import add_user, get_items, add_admin_id, is_admin, delete_item, DBRequests
+from app.database.models import get_db_session
 import app.keyboards as kb
 import os
 
@@ -108,13 +110,23 @@ async def get_item_description(message: Message, state: FSMContext):
 
 
 @router.message(Form.item_price)
-async def add_item(message: Message, state: FSMContext):
+async def add_item(message: types.Message, state: FSMContext):
     try:
         await state.update_data(price=message.text)
         data = await state.get_data()
+        item_data = (data['name'], data['description'], int(data['price']))
         await message.answer(f"Товар создан!\nНазвание: {data['name']}"
                              f"\nОписание: {data['description']}"
                              f"\nЦена: {data['price']}₽")
+
+        session_generator: AsyncIterator = get_db_session()
+        db_session = await anext(session_generator)
+
+        await DBRequests.create_requests(
+            db_session,
+            item_data,
+        )
+
         await state.clear()
     except ValueError:
         await message.answer('Пожалуйста, введите корректную цену (только число)')
