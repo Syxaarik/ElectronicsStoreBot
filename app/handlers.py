@@ -28,6 +28,11 @@ async def start(message: Message):
     await message.answer(f'Привет мой друг {message.from_user.full_name}', reply_markup=kb.main)
 
 
+@router.callback_query(F.data == 'contact')
+async def contact(callback: CallbackQuery):
+    await callback.message.answer('За помощью обращайтесь @Sheff_Shen')
+
+
 @router.callback_query(F.data == 'catalog')
 async def catalog(callback: CallbackQuery):
     await callback.message.edit_text('Выберите товар', reply_markup=await kb.keyboard_item())
