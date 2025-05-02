@@ -6,7 +6,7 @@ from aiogram.filters import CommandStart
 from typing import AsyncIterator
 from dotenv import load_dotenv
 
-from app.database.requests import add_user, get_items, add_admin_id, is_admin, delete_item, DBRequests
+from app.database.requests import add_user, get_items, add_admin_id, is_admin, delete_item_by_catalog, DBRequests
 from app.database.models import get_db_session
 import app.keyboards as kb
 import os
@@ -143,7 +143,7 @@ async def get_item_delete(callback: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith('delete_'))
-async def delete_item(callback: CallbackQuery, session):
+async def delete_item_process(callback: CallbackQuery, session):
     item_id = int(callback.data.split('_')[1])
-    await delete_item(session, item_id)
-    await callback.message.edit_text('Товар удален\n Выберите кнопку из меню', reply_markup=kb.main)
+    await delete_item_by_catalog(session, item_id)
+    await callback.message.edit_text(f'Товар с ID {item_id} удалён', show_alert=True, reply_markup=kb.main)
